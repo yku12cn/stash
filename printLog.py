@@ -38,7 +38,8 @@ class printLog():
                 Path.mkdir(logpath.parent, parents=True)
         self._logfile = open(logpath, "a")
 
-    def printL(self, *args, t=False, redirect=False, file=None, **kwargs):
+    def printL(self, *args, t=False, redirect=False,
+               file=None, flush=False, **kwargs):
         """A wrap of python built-in print()
         use it as you normally using print()
         if self._logfile is defined the result
@@ -53,17 +54,17 @@ class printLog():
             # print to log
             if t:  # Print time stamp
                 print(_timestamp(time()), end="", file=self._logfile)
-            print(*args, file=self._logfile, **kwargs)
+            print(*args, file=self._logfile, flush=True, **kwargs)
 
         if redirect:
             # handle redirect flag
             temp = StringIO()
-            print(*args, file=temp, **kwargs)
+            print(*args, file=temp, flush=flush, **kwargs)
             return temp.getvalue()
 
         if not file:
             file = sys.stdout
-        print(*args, file=file, **kwargs)
+        print(*args, file=file, flush=flush, **kwargs)
 
 
 if __name__ == "__main__":
