@@ -32,8 +32,11 @@ class SimpleWeb():
         self.scheme = "http"
         self.netloc = ""
         self.lasturl = urlparse.urlparse("")
-        _recorder = printLog(log)
-        self.mylog = _recorder.printL  # rename logging function
+        self._recorder = printLog(log)
+        self.mylog = self._recorder.printL  # rename logging function
+
+    def logfile(self):
+        return self._recorder.logfile()
 
     def myreq(self, url, postdata="", coder="utf-8",
               attempt=-1, reqtime=GLOBAL_DEF):

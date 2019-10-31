@@ -13,19 +13,27 @@ def _timestamp(ftime):
 class printLog():
     """Logging while Printing!"""
 
-    def __init__(self, log=""):
+    def __init__(self, log="", mkdirF=True):
         if log == "":
             self._logfile = None
         else:
-            self.logfile(log)
+            self.logfile(log=log, mkdirF=mkdirF)
             # self.logfile = open(Path(log), "a")
 
-    def logfile(self, log, mkdirF=True):
+    def logfile(self, log=None, mkdirF=True):
         """Assign or re-assign the log file
-        usage: logfile(log="path of your logfile", mkdirF=True)
-        if mkdirF is set to be True, logfile() will create
-        the directory if it does not exists.
+        usage:
+            logfile(log="path of your logfile", mkdirF=True):
+                if mkdirF is set to be True, logfile() will create
+                the directory if it does not exists.
+            logfile():
+                this will return current logfile's path
         """
+        if not log:
+            if not self._logfile:
+                return None
+            else:
+                return self._logfile.name
         if hasattr(self, "_logfile"):
             # check if logfile() is called by __init__
             if self._logfile is not None:
@@ -70,8 +78,9 @@ class printLog():
 if __name__ == "__main__":
     # This is a short demo
     from time import sleep
-    a = printLog("test.log")
+    a = printLog("./aaa/test.log", mkdirF=True)
     printL = a.printL
+    print(a.logfile())
     for i in range(10):
         printL("hello from iter", i, t=True, end="")
         printL(" balabala?")
