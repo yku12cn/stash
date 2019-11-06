@@ -70,8 +70,7 @@ A wrap of python's print() function. So it can save all prints to a log file.
 ```python
 from printLog import printLog
 
-a = printLog("test.log")
-printL = a.printL
+printL = printLog("test.log")
 
 for i in range(10):
     printL("hello from iter", i, t=True, end="")

@@ -5,9 +5,9 @@ from time import time, strftime, localtime
 
 
 def _timestamp(ftime):
-        """Generate a time stamp from seconds"""
-        return "[%s.%03d] " % (strftime("%Y/%b/%d %H:%M:%S", localtime(ftime)),
-                               ftime * 1000 % 1000)
+    """Generate a time stamp from seconds"""
+    return "[%s.%03d] " % (strftime("%Y/%b/%d %H:%M:%S", localtime(ftime)),
+                           ftime * 1000 % 1000)
 
 
 class printLog():
@@ -46,8 +46,8 @@ class printLog():
                 Path.mkdir(logpath.parent, parents=True)
         self._logfile = open(logpath, "a")
 
-    def printL(self, *args, t=False, redirect=False,
-               file=None, flush=False, **kwargs):
+    def __call__(self, *args, t=False, redirect=False,
+                 file=None, flush=False, **kwargs):
         """A wrap of python built-in print()
         use it as you normally using print()
         if self._logfile is defined the result
@@ -78,9 +78,8 @@ class printLog():
 if __name__ == "__main__":
     # This is a short demo
     from time import sleep
-    a = printLog("./aaa/test.log", mkdirF=True)
-    printL = a.printL
-    print(a.logfile())
+    printL = printLog("./aaa/test.log", mkdirF=True)
+    print(printL.logfile())
     for i in range(10):
         printL("hello from iter", i, t=True, end="")
         printL(" balabala?")
