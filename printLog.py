@@ -1,3 +1,8 @@
+"""
+A wrap of python's print() function. So it can save all prints to a log file.
+Copyright 2019 Yang Kaiyu yku12cn@gmail.com
+"""
+
 import sys
 from pathlib import Path
 from io import StringIO
