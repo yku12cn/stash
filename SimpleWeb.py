@@ -1,3 +1,7 @@
+"""A simplified web interface
+Copyright 2019 Yang Kaiyu yku12cn@gmail.com
+"""
+
 import urllib.request as urlreq
 import urllib.parse as urlparse
 import urllib.error as urlerr
@@ -35,6 +39,7 @@ class SimpleWeb():
         self.mylog = printLog(log)  # rename logging function
 
     def logfile(self):
+        """get the logfile handler"""
         return self.mylog.logfile()
 
     def myreq(self, url, postdata="", coder="utf-8",
