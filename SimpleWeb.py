@@ -51,13 +51,24 @@ class SimpleWeb():
         url = urlparse.quote(url, safe=';/:?=')
         # Understand url
         praser = urlparse.urlparse(url)
-        if (praser.scheme != '') and (praser.netloc != ''):  # complete url
+        if praser.scheme and praser.netloc:  # complete url
             pass
-        elif (((url[0] == '/') or (url[0:2] == './')) and
+        elif praser.netloc:  # missing scheme only
+            if self.scheme:
+                praser = praser._replace(scheme=self.scheme)
+            else:
+                praser = praser._replace(scheme="http")
+        elif praser.scheme:  # have scheme, don't have netloc
+            self.mylog("invalid address:", url)
+            return None
+        elif (((praser.path[0] == '/') or (praser.path[0:2] == './')) and
               (self.netloc != "")):  # relative url
             praser = praser._replace(scheme=self.scheme, netloc=self.netloc)
         else:  # probably missing http://
-            url = "http://" + url
+            if self.scheme:
+                url = "%s://%s" % (self.scheme, url)
+            else:
+                url = "http://%s" % url
             praser = urlparse.urlparse(url)
         # reset retry flag
         if attempt == -1:
