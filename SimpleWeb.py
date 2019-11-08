@@ -42,6 +42,30 @@ class SimpleWeb():
         """get the logfile handler"""
         return self.mylog.logfile()
 
+    def _completeUrl(self, url):
+        """Fix incomplete url"""
+        parser = urlparse.urlparse(url)
+        if parser.scheme and parser.netloc:  # complete url
+            pass
+        elif parser.netloc:  # missing scheme only
+            if self.scheme:
+                parser = parser._replace(scheme=self.scheme)
+            else:
+                parser = parser._replace(scheme="http")
+        elif parser.scheme:  # have scheme, don't have netloc
+            self.mylog("invalid address:", url)
+            return None
+        elif (((parser.path[0] == '/') or (parser.path[0:2] == './')) and
+              (self.netloc != "")):  # relative url
+            parser = parser._replace(scheme=self.scheme, netloc=self.netloc)
+        else:  # probably missing http://
+            if self.scheme:
+                url = "%s://%s" % (self.scheme, url)
+            else:
+                url = "http://%s" % url
+            parser = urlparse.urlparse(url)
+        return parser.geturl()
+
     def myreq(self, url, postdata="", coder="utf-8",
               attempt=-1, reqtime=GLOBAL_DEF):
         """A simplified web request(post) with cookie
@@ -50,36 +74,17 @@ class SimpleWeb():
         # Quote url for special characters
         url = urlparse.quote(url, safe=';/:?=')
         # Understand url
-        praser = urlparse.urlparse(url)
-        if praser.scheme and praser.netloc:  # complete url
-            pass
-        elif praser.netloc:  # missing scheme only
-            if self.scheme:
-                praser = praser._replace(scheme=self.scheme)
-            else:
-                praser = praser._replace(scheme="http")
-        elif praser.scheme:  # have scheme, don't have netloc
-            self.mylog("invalid address:", url)
-            return None
-        elif (((praser.path[0] == '/') or (praser.path[0:2] == './')) and
-              (self.netloc != "")):  # relative url
-            praser = praser._replace(scheme=self.scheme, netloc=self.netloc)
-        else:  # probably missing http://
-            if self.scheme:
-                url = "%s://%s" % (self.scheme, url)
-            else:
-                url = "http://%s" % url
-            praser = urlparse.urlparse(url)
+        url = self._completeUrl(url)
         # reset retry flag
         if attempt == -1:
             attempt = self.atpset
         # Try making the request
         try:
             if postdata == "":
-                req = urlreq.Request(praser.geturl(), headers=self.fakeHeader)
+                req = urlreq.Request(url, headers=self.fakeHeader)
             else:
                 data_parse = urlparse.urlencode(postdata).encode(coder)
-                req = urlreq.Request(praser.geturl(), data=data_parse,
+                req = urlreq.Request(url, data=data_parse,
                                      headers=self.fakeHeader)
             out = self.cjopener.open(req, timeout=reqtime)
             self.lasturl = urlparse.urlparse(
