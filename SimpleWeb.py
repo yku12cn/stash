@@ -9,7 +9,6 @@ import http.cookiejar
 from socket import _GLOBAL_DEFAULT_TIMEOUT as GLOBAL_DEF
 import time
 import ssl
-import re
 from pathlib import Path
 from printLog import printLog
 
@@ -66,13 +65,13 @@ class SimpleWeb():
             parser = urlparse.urlparse(url)
         return parser.geturl()
 
-    def myreq(self, url, postdata="", coder="utf-8",
+    def myreq(self, url, postdata=None, coder="utf-8",
               attempt=-1, reqtime=GLOBAL_DEF):
         """A simplified web request(post) with cookie
         Post data in the form of {'name':'Eva','age':'20'}
         """
         # Quote url for special characters
-        url = urlparse.quote(url, safe=';/:?=')
+        url = urlparse.quote(url, safe=':/?#[]@!$&\'()*+,;=%')
         # Understand url
         url = self._completeUrl(url)
         # reset retry flag
@@ -80,54 +79,78 @@ class SimpleWeb():
             attempt = self.atpset
         # Try making the request
         try:
-            if postdata == "":
-                req = urlreq.Request(url, headers=self.fakeHeader)
-            else:
+            if postdata:
                 data_parse = urlparse.urlencode(postdata).encode(coder)
                 req = urlreq.Request(url, data=data_parse,
                                      headers=self.fakeHeader)
+            else:
+                req = urlreq.Request(url, headers=self.fakeHeader)
             out = self.cjopener.open(req, timeout=reqtime)
             self.lasturl = urlparse.urlparse(
                 out.geturl())  # update last successful req
             return out
-        except (urlerr.HTTPError, urlerr.URLError) as error:
-            # retry for http error
+        except urlerr.URLError as error:
+            # retry for all net error
             self.mylog(error)
             if attempt != 0:
-                self.mylog("retry, {} attempts left".format(attempt))
+                self.mylog("retry request,", attempt, "attempts left")
                 time.sleep(0.5)
                 return self.myreq(url, postdata=postdata, coder=coder,
                                   attempt=attempt - 1, reqtime=reqtime)
-            else:
-                self.mylog("request fail due to HTTP error")
-                return None
-        except Exception as error:
-            self.mylog(error)
             return None
 
-    def updateNetloc(self, url=""):
+    def updateNetloc(self, url=None):
         """Force update domain"""
-        if url != "":
-            if self.myreq(url) is None:
+        if url:
+            if not self.myreq(url):
                 return False
         self.scheme = self.lasturl.scheme
         self.netloc = self.lasturl.netloc
         return True
 
-    def reqCode(self, url, coder="utf-8", post="",
-                postcoder="utf-8", timeout=GLOBAL_DEF):
+    def reqCode(self, url, coder="utf-8", post=None, postcoder="utf-8",
+                attempt=-1, timeout=GLOBAL_DEF):
         """Request for source code"""
-        try:
-            return self.myreq(url, reqtime=timeout, postdata=post,
-                              coder=postcoder).read().decode(coder)
-        except Exception as error:
-            self.mylog(error)
+        # reset retry flag
+        if attempt == -1:
+            attempt = self.atpset
+        # Try to connect target
+        handle = self.myreq(url, reqtime=timeout, attempt=0,
+                            postdata=post, coder=postcoder)
+        if handle:
+            try:
+                # Try fetching data
+                data = handle.read()
+            except OSError as error:
+                # Handle connection issues when loading actual data
+                self.mylog(error)
+                if attempt != 0:
+                    self.mylog("retry loading data,", attempt, "attempts left")
+                    time.sleep(0.5)
+                    return self.reqCode(url, coder=coder, attempt=attempt - 1,
+                                        post=post, postcoder=postcoder,
+                                        timeout=timeout)
+                return None
+            try:
+                # Try decode
+                return data.decode(coder)
+            except ValueError as error:
+                self.mylog("Codec error:", error)
+                return None
+        else:
+            # Handle connection failure
+            if attempt != 0:
+                self.mylog("retry request,", attempt, "attempts left")
+                time.sleep(0.5)
+                return self.reqCode(url, coder=coder, attempt=attempt - 1,
+                                    post=post, postcoder=postcoder,
+                                    timeout=timeout)
             return None
 
-    def saveFile(self, url, filename="", timeout=GLOBAL_DEF):
+    def saveFile(self, url, filename=None, timeout=GLOBAL_DEF):
         """Simple download"""
-        if filename == "":
-            filename = re.findall(r"/([^/]*?)$", url)[0]
+        if not filename:
+            filename = Path(url).name
         filename = Path(filename)
         if not filename.exists():  # check for conflicts
             try:
