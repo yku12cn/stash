@@ -114,38 +114,37 @@ class SimpleWeb():
         # reset retry flag
         if attempt == -1:
             attempt = self.atpset
-        # Try to connect target
-        handle = self.myreq(url, reqtime=timeout, attempt=0,
-                            postdata=post, coder=postcoder)
-        if handle:
-            try:
-                # Try fetching data
-                data = handle.read()
-            except OSError as error:
-                # Handle connection issues when loading actual data
-                self.mylog(error)
-                if attempt != 0:
-                    self.mylog("retry loading data,", attempt, "attempts left")
+        # Try fetching data
+        while attempt >= 0:
+            # Try to connect target
+            handle = self.myreq(url, reqtime=timeout, attempt=0,
+                                postdata=post, coder=postcoder)
+            if handle:
+                try:
+                    # Try fetching data
+                    data = handle.read()
+                except OSError as error:
+                    # Handle connection issues when loading actual data
+                    self.mylog(error)
+                    if attempt == 0:
+                        return None
+                    self.mylog("re-loading data,", attempt, "attempts left")
                     time.sleep(0.5)
-                    return self.reqCode(url, coder=coder, attempt=attempt - 1,
-                                        post=post, postcoder=postcoder,
-                                        timeout=timeout)
-                return None
-            try:
-                # Try decode
-                return data.decode(coder)
-            except ValueError as error:
-                self.mylog("Codec error:", error)
-                return None
-        else:
-            # Handle connection failure
-            if attempt != 0:
+                    attempt = attempt - 1
+                    continue
+                try:
+                    # Try decode
+                    return data.decode(coder)
+                except ValueError as error:
+                    self.mylog("Codec error:", error)
+                    return None
+            else:
+                # Handle connection failure
+                if attempt == 0:
+                    return None
                 self.mylog("retry request,", attempt, "attempts left")
                 time.sleep(0.5)
-                return self.reqCode(url, coder=coder, attempt=attempt - 1,
-                                    post=post, postcoder=postcoder,
-                                    timeout=timeout)
-            return None
+                attempt = attempt - 1
 
     def saveFile(self, url, filename=None, timeout=GLOBAL_DEF):
         """Simple download"""
