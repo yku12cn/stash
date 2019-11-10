@@ -18,6 +18,22 @@ AppleWebKit/537.36 (KHTML, like Gecko) \
 Chrome/75.0.3770.142 Safari/537.36"
 
 
+def _transFile(source, target, buffer):
+    """A helper function for file transferring"""
+    Totle = source.length
+    last = 0
+    while True:
+        now = round((1 - source.length/Totle)*20)
+        if last != now:
+            print("=" * (now - last), sep="", end="", flush=True)
+            last = now
+        pack = source.read(buffer)
+        if not pack:
+            break
+        target.write(pack)
+    print("")
+
+
 class SimpleWeb():
     """A simplified web interface"""
 
@@ -124,7 +140,7 @@ class SimpleWeb():
                     # Try fetching data
                     data = handle.read()
                 except OSError as error:
-                    # Handle connection issues when loading actual data
+                    # Handle connection issues
                     self.mylog(error)
                     if attempt == 0:
                         return None
@@ -146,24 +162,44 @@ class SimpleWeb():
                 time.sleep(0.5)
                 attempt = attempt - 1
 
-    def saveFile(self, url, filename=None, timeout=GLOBAL_DEF):
+    def saveFile(self, url, filename=None, buffer=64000,
+                 attempt=-1, timeout=GLOBAL_DEF):
         """Simple download"""
         if not filename:
             filename = Path(url).name
         filename = Path(filename)
-        if not filename.exists():  # check for conflicts
-            try:
-                # download data to RAM
-                data = self.myreq(url, reqtime=timeout).read()
+        if filename.exists():  # check for conflicts
+            self.mylog(filename.absolute().as_posix(), "already exists")
+            return True
+        # reset retry flag
+        if attempt == -1:
+            attempt = self.atpset
+        # Try fetching data
+        while attempt >= 0:
+            # Try to connect target
+            handle = self.myreq(url, reqtime=timeout, attempt=0)
+            if handle:
                 downfile = open(filename, "wb")
-                downfile.write(data)
-                downfile.close()
-            except Exception as error:  # clean up mess if fail
-                self.mylog(error)
-                if filename.exists():
-                    filename.unlink()
-                return False
-        else:
-            self.mylog("\"%s\" already exists" %
-                       (filename.absolute().as_posix()))
-        return True
+                try:
+                    # Try to download data
+                    _transFile(handle, downfile, buffer)
+                    downfile.close()
+                    return True
+                except OSError as error:
+                    # Handle transfer error
+                    self.mylog(error)
+                    downfile.close()
+                    if filename.exists():
+                        filename.unlink()
+                    if attempt == 0:
+                        return False
+                    self.mylog("re-transfer,", attempt, "attempts left")
+                    time.sleep(0.5)
+                    attempt = attempt - 1
+            else:
+                # Handle connection failure
+                if attempt == 0:
+                    return False
+                self.mylog("retry request,", attempt, "attempts left")
+                time.sleep(0.5)
+                attempt = attempt - 1
