@@ -104,6 +104,23 @@ setWallPaper("/you/picture/wallpaper.jpg")
 
 ```
 
+## SimplePlot.py
+
+A simplified matplot api used to plot any function
+
+**Demo:**
+
+```python
+from SimplePlot import draw
+
+# For help:
+draw()
+
+# Draw function:
+draw(lambda x: 1/x, [0.1, 2])
+
+```
+
 ## SimpleWeb.py
 
 A simple but rather robust class for navigating Internet
