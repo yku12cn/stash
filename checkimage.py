@@ -175,7 +175,7 @@ def get_image_metadata(input, size, file_path=None):
         except Exception as e:
             raise UnknownImageFormat(str(e))
     elif size >= 2:
-            # see http://en.wikipedia.org/wiki/ICO_(file_format)
+        # see http://en.wikipedia.org/wiki/ICO_(file_format)
         imgtype = 'ico'
         input.seek(0)
         reserved = input.read(2)
