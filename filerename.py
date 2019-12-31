@@ -4,10 +4,15 @@ from stringcompare import compString
 
 
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print("In following format:")
         print("    \"prifix\" -time/name")
         return False
+
+    if len(sys.argv) == 4:
+        startnum = int(sys.argv[3])
+    else:
+        startnum = 0
 
     prifix = sys.argv[1]
     method = sys.argv[2]
@@ -33,7 +38,7 @@ def main():
     if answer == 'n':
         return False
 
-    i = 0
+    i = startnum
     for file in newlist:
         ext = os.path.splitext(file)[1]
         os.rename(file, prifix + "%04d" % i + ext)
