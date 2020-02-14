@@ -14,8 +14,8 @@ print("check where")
 web = SimpleWeb()
 for ipitem in outlist:
     if "|--" in ipitem:
-        ip = re.findall("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", ipitem)
-        if len(ip):
+        ip = re.findall(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", ipitem)
+        if ip:
             ip = ip[0]
             [location, isp] = __checkipK(ip, web)
             print(ipitem, "\t addr:", location, "\tISP:", isp)

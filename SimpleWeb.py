@@ -81,10 +81,13 @@ class SimpleWeb():
             parser = urlparse.urlparse(url)
         return parser.geturl()
 
-    def myreq(self, url, postdata=None, coder="utf-8",
-              attempt=-1, reqtime=GLOBAL_DEF):
+    def Request(self, url, postdata=None, coder="utf-8",
+                attempt=-1, reqtime=GLOBAL_DEF):
         """A simplified web request(post) with cookie
         Post data in the form of {'name':'Eva','age':'20'}
+        Note: if the post data is not a valid non-string sequence
+        or mapping object, we will assume the data is already
+        well prepared.
         """
         # Quote url for special characters
         url = urlparse.quote(url, safe=':/?#[]@!$&\'()*+,;=%')
@@ -96,7 +99,16 @@ class SimpleWeb():
         # Try making the request
         try:
             if postdata:
-                data_parse = urlparse.urlencode(postdata).encode(coder)
+                try:
+                    # convert non-string sequence or mapping object
+                    data_parse = urlparse.urlencode(postdata)
+                except TypeError:
+                    # neither valid non-string sequence nor mapping object
+                    data_parse = postdata
+
+                if not isinstance(data_parse, bytes):
+                    data_parse = data_parse.encode(coder)
+
                 req = urlreq.Request(url, data=data_parse,
                                      headers=self.fakeHeader)
             else:
@@ -111,14 +123,14 @@ class SimpleWeb():
             if attempt != 0:
                 self.mylog("retry request,", attempt, "attempts left")
                 time.sleep(0.5)
-                return self.myreq(url, postdata=postdata, coder=coder,
-                                  attempt=attempt - 1, reqtime=reqtime)
+                return self.Request(url, postdata=postdata, coder=coder,
+                                    attempt=attempt - 1, reqtime=reqtime)
             return None
 
     def updateNetloc(self, url=None):
         """Force update domain"""
         if url:
-            if not self.myreq(url):
+            if not self.Request(url):
                 return False
         self.scheme = self.lasturl.scheme
         self.netloc = self.lasturl.netloc
@@ -133,8 +145,8 @@ class SimpleWeb():
         # Try fetching data
         while attempt >= 0:
             # Try to connect target
-            handle = self.myreq(url, reqtime=timeout, attempt=0,
-                                postdata=post, coder=postcoder)
+            handle = self.Request(url, reqtime=timeout, attempt=0,
+                                  postdata=post, coder=postcoder)
             if handle:
                 try:
                     # Try fetching data
@@ -177,7 +189,7 @@ class SimpleWeb():
         # Try fetching data
         while attempt >= 0:
             # Try to connect target
-            handle = self.myreq(url, reqtime=timeout, attempt=0)
+            handle = self.Request(url, reqtime=timeout, attempt=0)
             if handle:
                 downfile = open(filename, "wb")
                 try:
@@ -203,3 +215,9 @@ class SimpleWeb():
                 self.mylog("retry request,", attempt, "attempts left")
                 time.sleep(0.5)
                 attempt = attempt - 1
+
+    def __call__(self):
+        """Print help"""
+        for func in dir(self):
+            if callable(getattr(self, func)) and func[0:2] != "__":
+                print(func, getattr(self, func).__doc__, sep=" : ")
