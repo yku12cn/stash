@@ -10,6 +10,18 @@ Load all images from one folder and auto tune their exposure.
 
 **Usage:** python3 autoHist.py /\*\*/input_folder/ /\*\*/output_folder/
 
+## bfilesize.py
+
+Quickly translate file size in bytes to KB/MB/GB/TB
+
+**Demo:**
+
+```python
+from bfilesize import bFSize
+
+print(bFSize(102938552))
+```
+
 ## bingBG.py
 
 Set your Win10 wallpaper to current Bing's background

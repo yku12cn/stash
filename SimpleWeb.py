@@ -11,6 +11,7 @@ import time
 import ssl
 from pathlib import Path
 from printLog import printLog
+from bfilesize import bFSize
 
 _defaultuserAgent = "\
 Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
@@ -18,14 +19,15 @@ AppleWebKit/537.36 (KHTML, like Gecko) \
 Chrome/75.0.3770.142 Safari/537.36"
 
 
-def _transFile(source, target, buffer):
+def _transFile(source, target, buffer, barlength=20):
     """A helper function for file transferring"""
     Totle = source.length
     last = 0
+    print("-" * barlength + "\b" * barlength, end="", flush=True)
     while True:
-        now = round((1 - source.length/Totle)*20)
+        now = round((1 - source.length/Totle)*barlength)
         if last != now:
-            print("=" * (now - last), sep="", end="", flush=True)
+            print(">" * (now - last), sep="", end="", flush=True)
             last = now
         pack = source.read(buffer)
         if not pack:
@@ -175,13 +177,18 @@ class SimpleWeb():
                 attempt = attempt - 1
 
     def saveFile(self, url, filename=None, buffer=64000,
-                 attempt=-1, timeout=GLOBAL_DEF):
-        """Simple download"""
+                 attempt=-1, timeout=GLOBAL_DEF, overwrite=0):
+        """Simple download
+        overwrite = 0 : never overwrite existing file
+        overwrite = 1 : overwirte only when size mismatch
+        overwrite = 2 : overwirte anyway
+        """
         if not filename:
             filename = Path(url).name
         filename = Path(filename)
-        if filename.exists():  # check for conflicts
-            self.mylog(filename.absolute().as_posix(), "already exists")
+        if filename.exists() and overwrite == 0:  # check for conflicts
+            self.mylog(filename.absolute().as_posix(),
+                       "exists, abort. Set [overwrite > 0] to proceed")
             return True
         # reset retry flag
         if attempt == -1:
@@ -191,9 +198,23 @@ class SimpleWeb():
             # Try to connect target
             handle = self.Request(url, reqtime=timeout, attempt=0)
             if handle:
+                if filename.exists():  # Resolve file conflict
+                    if overwrite == 2:
+                        self.mylog("Force overwriting existing", filename.name)
+                        filename.unlink()
+                    elif overwrite == 1:
+                        self.mylog(filename.name, "exists, checking size")
+                        if filename.stat().st_size == handle.length:
+                            self.mylog("Same size, abort")
+                            return True
+                        self.mylog("Size mismatch, proceed overwriting")
+                        filename.unlink()
+
                 downfile = open(filename, "wb")
                 try:
                     # Try to download data
+                    self.mylog("Fetching \"%s\" - %s in total" %
+                               (filename.name, bFSize(handle.length)))
                     _transFile(handle, downfile, buffer)
                     downfile.close()
                     return True
