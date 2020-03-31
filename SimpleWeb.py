@@ -18,21 +18,29 @@ Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
 AppleWebKit/537.36 (KHTML, like Gecko) \
 Chrome/75.0.3770.142 Safari/537.36"
 
+_pBar = ["-", "+", ">"]
+
 
 def _transFile(source, target, buffer, barlength=20):
     """A helper function for file transferring"""
     Totle = source.length
     last = 0
-    print("-" * barlength + "\b" * barlength, end="", flush=True)
+    print(_pBar[0] * barlength + "\b" * barlength, end="", flush=True)
+    actInd = 1
     while True:
-        now = round((1 - source.length/Totle)*barlength)
+        now = int((1 - source.length/Totle)*barlength)
         if last != now:
-            print(">" * (now - last), sep="", end="", flush=True)
+            print(_pBar[2] * (now - last), sep="", end="", flush=True)
             last = now
         pack = source.read(buffer)
         if not pack:
             break
         target.write(pack)
+
+        # Print action indicator
+        print(_pBar[actInd], "\b", sep="", end="", flush=True)
+        actInd = 1 - actInd
+
     print("")
 
 
