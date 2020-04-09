@@ -25,7 +25,7 @@ def equalHist(filename, output, low=0.01, high=0.01, quality=0.75):
     totalcut = lowcut
     for value in hist[::-1]:
         conv += value
-        if conv < low:
+        if conv < high:
             totalcut += 1
         else:
             break
