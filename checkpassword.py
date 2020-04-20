@@ -2,7 +2,14 @@ import hashlib
 import requests
 import sys
 
-testword = sys.argv[1]
+
+pauseflag = False
+
+if len(sys.argv) == 2:
+    testword = sys.argv[1]
+else:
+    testword = input("Input your password: ")
+    pauseflag = True
 
 sha1Hash = hashlib.sha1(testword.encode('utf-8')).hexdigest().upper()
 sha1HashH, sha1HashT = sha1Hash[:5], sha1Hash[5:]
@@ -17,3 +24,6 @@ if count == 0:
 else:
     print(testword, "was found")
     print("Hash", sha1Hash, ",", count, "occurences")
+
+if pauseflag:
+    input("Done")
