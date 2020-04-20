@@ -60,7 +60,7 @@ def main():
         quality = float(sys.argv[3])
 
     if not outputF.exists():
-        outputF.mkdir()
+        outputF.mkdir(parents=True)
 
     if not (inputF.exists() and inputF.is_dir()):
         print("error input parameter")

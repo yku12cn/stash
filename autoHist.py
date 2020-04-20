@@ -87,7 +87,7 @@ def main():
         print("error input parameter")
 
     if not outputF.exists():
-        outputF.mkdir()
+        outputF.mkdir(parents=True)
 
     imglist = sorted(list(inputF.glob("*")))
 
