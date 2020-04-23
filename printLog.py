@@ -15,6 +15,13 @@ def _timestamp(ftime):
                            ftime * 1000 % 1000)
 
 
+def tStamp():
+    """Generate a compact time string
+        example: "20200423152722"
+    """
+    return "%04d%02d%02d%02d%02d%02d" % localtime()[0:6]
+
+
 class printLog():
     """Logging while Printing!"""
 
