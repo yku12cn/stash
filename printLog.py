@@ -90,7 +90,7 @@ class printLog():
 if __name__ == "__main__":
     # This is a short demo
     from time import sleep
-    printL = printLog("./aaa/test.log", mkdirF=True)
+    printL = printLog("./aaa/%s.log" % tStamp(), mkdirF=True)
     print(printL.logfile())
     for i in range(10):
         printL("hello from iter", i, t=True, end="")

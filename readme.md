@@ -72,6 +72,14 @@ For file's name not ended with a number, nothing will be changed.
 
 **Usage:** double click
 
+## IMGcompress.py
+
+Load all images from one folder and compress them
+
+**Usage #1:** python3 IMGcompress.py /\*\*/input_folder/ /\*\*/output_folder/ 0.85
+
+**Usage #2:** double click
+
 ## mytrace.py
 
 Trace and lookup all ips from [ipip](https://en.ipip.net/ip.html)
@@ -90,12 +98,14 @@ Change all .png images under current folder to .jpg
 
 A wrap of python's print() function. So it can save all prints to a log file.
 
+added a helper function tStamp() which can generate a compact time string
+
 **Demo:**
 
 ```python
-from printLog import printLog
+from printLog import printLog, tStamp
 
-printL = printLog("test.log")
+printL = printLog("%s.log" % tStamp())
 
 for i in range(10):
     printL("hello from iter", i, t=True, end="")
