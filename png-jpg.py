@@ -39,7 +39,7 @@ def main():
                 im = im.convert("RGB")
             if im.mode == "LA":
                 im = im.convert("L")
-            im.save(file.stem + ".jpg")
+            im.save(file.stem + ".jpg", quality=95)
             im.close()
             if file.suffix != ".jpg":
                 file.unlink()

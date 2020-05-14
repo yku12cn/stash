@@ -10,21 +10,32 @@ from time import time, strftime, localtime
 
 
 def _timestamp(ftime):
-    """Generate a time stamp from seconds"""
+    r"""Generate a time stamp from seconds
+
+    Returns:
+        str -- a time stamp YYYY/MM/DD hh:mm:ss.sss
+    """
     return "[%s.%03d] " % (strftime("%Y/%b/%d %H:%M:%S", localtime(ftime)),
                            ftime * 1000 % 1000)
 
 
 def tStamp():
-    """Generate a compact time string
-        example: "20200423152722"
+    r"""Generate a compact time string
+
+    Returns:
+        str -- YYYYMMDDhhmmss
     """
     return "%04d%02d%02d%02d%02d%02d" % localtime()[0:6]
 
 
 class printLog():
-    """Logging while Printing!"""
+    r"""Logging while Printing!
 
+    Keyword Arguments:
+        log {str} -- Path of .log file (default: {""})
+                    Leave empty if you don't need .log
+        mkdirF {bool} -- create dir for .log (default: {True})
+    """
     def __init__(self, log="", mkdirF=True):
         if log == "":
             self._logfile = None
@@ -33,13 +44,15 @@ class printLog():
             # self.logfile = open(Path(log), "a")
 
     def logfile(self, log=None, mkdirF=True):
-        """Assign or re-assign the log file
-        usage:
-            logfile(log="path of your logfile", mkdirF=True):
-                if mkdirF is set to be True, logfile() will create
-                the directory if it does not exists.
-            logfile():
-                this will return current logfile's path
+        r"""Assign or re-assign the log file
+
+        Keyword Arguments:
+            log {str} -- Path of .log file (default: {""})
+            mkdirF {bool} -- create dir for .log (default: {True})
+
+        Returns:
+            str -- call logfile() without Arguments will return
+                   the path of current logfile
         """
         if not log:
             if not self._logfile:
@@ -60,15 +73,17 @@ class printLog():
 
     def __call__(self, *args, t=False, redirect=False,
                  file=None, flush=False, **kwargs):
-        """A wrap of python built-in print()
-        use it as you normally using print()
-        if self._logfile is defined the result
-        of print() will also be logged
+        r"""A wrap of python built-in print()
 
-        if [redirect] is True, the print() will be muted and
-        its results will be returned
+        Keyword Arguments:
+            t {bool} -- generate timestamp for each log (default: {False})
+            redirect {bool} -- if true, the print() will be muted and
+                               its results will be returned (default: {False})
+            file {write-able obj} -- inherent from print() (default: {None})
+            flush {bool} -- inherent from print() (default: {False})
 
-        if [t] is Set, each log will started with a time stamp
+        Returns:
+            str -- return results if redirect is True
         """
         if self._logfile:
             # print to log
