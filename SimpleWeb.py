@@ -6,6 +6,7 @@ import urllib.request as urlreq
 import urllib.parse as urlparse
 import urllib.error as urlerr
 import http.cookiejar
+import json
 from socket import _GLOBAL_DEFAULT_TIMEOUT as GLOBAL_DEF
 import time
 import ssl
@@ -16,7 +17,7 @@ from bfilesize import bFSize
 _defaultuserAgent = "\
 Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
 AppleWebKit/537.36 (KHTML, like Gecko) \
-Chrome/75.0.3770.142 Safari/537.36"
+Chrome/83.0.4103.97 Safari/537.36"
 
 _pBar = ["-", "+", ">"]
 
@@ -44,6 +45,64 @@ def _transFile(source, target, buffer, barlength=20):
     print("")
 
 
+def _easyCookie(item):
+    """a easy way to cook a cookie form a dictionary
+
+    Args:
+        item (dictionary): a dictionary at least has "name" and "value"
+
+    Returns:
+        http.cookiejar.Cookie: a cookie
+    """
+    new_cookie = http.cookiejar.Cookie(
+        version=int(item["version"]) if "version" in item else 0,
+        name=item["name"],
+        value=item["value"],
+        port=int(item["port"]) if "port" in item else None,
+        port_specified="port" in item,
+        domain=item.get("domain"),
+        domain_specified="domain" in item,
+        domain_initial_dot=False,
+        path=item.get("path", "/"),
+        path_specified="path" in item,
+        secure=item.get("secure", False),
+        expires=None,  # Deal later
+        discard="expirationDate" not in item,
+        comment=None,
+        comment_url=None,
+        rest={},
+        rfc2109=False
+    )
+
+    if new_cookie.domain_specified:
+        new_cookie.domain_initial_dot = new_cookie.domain.startswith(".")
+
+    if new_cookie.path == "":
+        new_cookie.path = "/"
+        new_cookie.path_specified = False
+
+    if "httpOnly" in item:
+        new_cookie._rest["HttpOnly"] = item["httpOnly"]
+    else:
+        new_cookie._rest["HttpOnly"] = None
+
+    if "sameSite" in item:
+        new_cookie._rest["SameSite"] = item["sameSite"]
+    else:
+        new_cookie._rest["SameSite"] = None
+
+    if new_cookie._rest["SameSite"] == "unspecified":
+        new_cookie._rest["SameSite"] = None
+
+    expDate = item.get("expirationDate")
+    if expDate:
+        new_cookie.expires = float(expDate)
+        if new_cookie.expires <= time.time():
+            return None
+
+    return new_cookie
+
+
 class SimpleWeb():
     """A simplified web interface"""
 
@@ -54,8 +113,9 @@ class SimpleWeb():
         self.fakeHeader = {}
         self.fakeHeader["User-Agent"] = userAgent
         # Create cookie jar
+        self.cjar = http.cookiejar.CookieJar()
         self.cjopener = urlreq.build_opener(
-            urlreq.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+            urlreq.HTTPCookieProcessor(self.cjar))
         # Bypassing SSL check
         ssl._create_default_https_context = ssl._create_unverified_context
         self.scheme = "http"
@@ -244,6 +304,27 @@ class SimpleWeb():
                 self.mylog("retry request,", attempt, "attempts left")
                 time.sleep(0.5)
                 attempt = attempt - 1
+
+    def addACookie(self, rawCookie):
+        """add a raw cookie to current cookie jar
+        if cookie is expired, nothing will be done
+
+        Args:
+            rawCookie (dictionary): least has "name" and "value"
+        """
+        cooked = _easyCookie(rawCookie)
+        if cooked:
+            self.cjar.set_cookie(cooked)
+
+    def loadCookiesFJson(self, jfile):
+        """load cookies from a json file
+
+        Args:
+            jfile (str of Path): path to the Json file
+        """
+        with open(Path(jfile)) as f:
+            for item in json.load(f):
+                self.addACookie(item)
 
     def __call__(self):
         """Print help"""
