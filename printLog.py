@@ -36,14 +36,14 @@ class printLog():
                     Leave empty if you don't need .log
         mkdirF {bool} -- create dir for .log (default: {True})
     """
-    def __init__(self, log="", mkdirF=True):
+    def __init__(self, log="", mkdirF=True, encoding="utf-8"):
         if log == "":
             self._logfile = None
         else:
-            self.logfile(log=log, mkdirF=mkdirF)
+            self.logfile(log=log, mkdirF=mkdirF, encoding=encoding)
             # self.logfile = open(Path(log), "a")
 
-    def logfile(self, log=None, mkdirF=True):
+    def logfile(self, log=None, mkdirF=True, encoding="utf-8"):
         r"""Assign or re-assign the log file
 
         Keyword Arguments:
@@ -69,7 +69,7 @@ class printLog():
         if mkdirF:
             if not logpath.parent.exists():
                 Path.mkdir(logpath.parent, parents=True)
-        self._logfile = open(logpath, "a")
+        self._logfile = open(logpath, "a", encoding=encoding)
 
     def __call__(self, *args, t=False, redirect=False,
                  file=None, flush=False, **kwargs):

@@ -316,13 +316,13 @@ class SimpleWeb():
         if cooked:
             self.cjar.set_cookie(cooked)
 
-    def loadCookiesFJson(self, jfile):
+    def loadCookiesFJson(self, jfile, encoding="utf-8"):
         """load cookies from a json file
 
         Args:
             jfile (str of Path): path to the Json file
         """
-        with open(Path(jfile)) as f:
+        with open(Path(jfile), "r", encoding=encoding) as f:
             for item in json.load(f):
                 self.addACookie(item)
 
