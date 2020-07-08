@@ -12,8 +12,11 @@ from time import time, strftime, localtime
 def _timestamp(ftime):
     r"""Generate a time stamp from seconds
 
+    Args:
+        ftime (flot): seconds
+
     Returns:
-        str -- a time stamp YYYY/MM/DD hh:mm:ss.sss
+        str : a time stamp YYYY/MM/DD hh:mm:ss.sss
     """
     return "[%s.%03d] " % (strftime("%Y/%b/%d %H:%M:%S", localtime(ftime)),
                            ftime * 1000 % 1000)
@@ -23,7 +26,7 @@ def tStamp():
     r"""Generate a compact time string
 
     Returns:
-        str -- YYYYMMDDhhmmss
+        str: YYYYMMDDhhmmss
     """
     return "%04d%02d%02d%02d%02d%02d" % localtime()[0:6]
 
@@ -32,9 +35,9 @@ class printLog():
     r"""Logging while Printing!
 
     Keyword Arguments:
-        log {str} -- Path of .log file (default: {""})
-                    Leave empty if you don't need .log
-        mkdirF {bool} -- create dir for .log (default: {True})
+        log (str): Path of .log file (default: {""})
+                   Leave empty if you don't need .log
+        mkdirF (bool): create dir for .log (default: {True})
     """
     def __init__(self, log="", mkdirF=True, encoding="utf-8"):
         if log == "":
@@ -46,19 +49,19 @@ class printLog():
     def logfile(self, log=None, mkdirF=True, encoding="utf-8"):
         r"""Assign or re-assign the log file
 
-        Keyword Arguments:
-            log {str} -- Path of .log file (default: {""})
-            mkdirF {bool} -- create dir for .log (default: {True})
+        Args:
+            log (str, optional): Path of .log file. Defaults to None.
+            mkdirF (bool, optional): create dir for .log. Defaults to True.
+            encoding (str, optional): encoding scheme. Defaults to "utf-8".
 
         Returns:
-            str -- call logfile() without Arguments will return
-                   the path of current logfile
+            str: call logfile() without Arguments will return
+                 the path of current logfile
         """
         if not log:
             if not self._logfile:
                 return None
-            else:
-                return self._logfile.name
+            return self._logfile.name
         if hasattr(self, "_logfile"):
             # check if logfile() is called by __init__
             if self._logfile is not None:
@@ -70,20 +73,21 @@ class printLog():
             if not logpath.parent.exists():
                 Path.mkdir(logpath.parent, parents=True)
         self._logfile = open(logpath, "a", encoding=encoding)
+        return self._logfile.name
 
     def __call__(self, *args, t=False, redirect=False,
                  file=None, flush=False, **kwargs):
         r"""A wrap of python built-in print()
 
-        Keyword Arguments:
-            t {bool} -- generate timestamp for each log (default: {False})
-            redirect {bool} -- if true, the print() will be muted and
-                               its results will be returned (default: {False})
-            file {write-able obj} -- inherent from print() (default: {None})
-            flush {bool} -- inherent from print() (default: {False})
+        Args:
+            t (bool, optional): gen timestamp for each log. Defaults to False.
+            redirect (bool, optional): if true, the print() will be muted and
+                               its results will be returned. Defaults to False.
+            file (write-able, optional): inherent from print().
+            flush (bool, optional): inherent from print()
 
         Returns:
-            str -- return results if redirect is True
+            str: return results if redirect is True
         """
         if self._logfile:
             # print to log
@@ -100,6 +104,7 @@ class printLog():
         if not file:
             file = sys.stdout
         print(*args, file=file, flush=flush, **kwargs)
+        return None
 
 
 if __name__ == "__main__":
