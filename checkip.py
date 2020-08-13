@@ -7,8 +7,12 @@ from SimpleWeb import SimpleWeb
 def __checkipK(targetIP, web):
     out = web.reqCode(f"http://ip-api.com/json/{targetIP}")
     out = json.loads(out)
-    location = f"{out['country']}, {out['regionName']}, {out['city']}"
-    isp = out['isp']
+    if out["status"] == "fail":
+        location = "nan"
+        isp = "nan"
+    else:
+        location = f"{out['country']}, {out['regionName']}, {out['city']}"
+        isp = out['isp']
     return [location, isp]
 
 
