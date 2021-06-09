@@ -1,5 +1,6 @@
 import hashlib
 import requests
+import getpass
 import sys
 
 
@@ -8,7 +9,7 @@ pauseflag = False
 if len(sys.argv) == 2:
     testword = sys.argv[1]
 else:
-    testword = input("Input your password: ")
+    testword = getpass.getpass("Input your password: ")
     pauseflag = True
 
 sha1Hash = hashlib.sha1(testword.encode('utf-8')).hexdigest().upper()
