@@ -11,10 +11,16 @@ import tqdm
 import cv2
 
 
-def ImgCompresser(filename, output, quality=0.75):
+def ImgCompresser(filename, output, quality=0.75, ratio=1):
     im = cv2.imread(filename, 1)  # load image as RGB
     if im is None:
         return
+
+    if ratio < 1:
+        im = cv2.resize(
+            im, (int(im.shape[1] * ratio), int(im.shape[0] * ratio)),
+            interpolation=cv2.INTER_AREA)
+
     ext = (PurePath(output).suffix).lower()
     if ("jpg" in ext) or ("jpeg" in ext):
         cv2.imwrite(output, im,
@@ -48,6 +54,12 @@ def main():
         except ValueError:
             quality = 0.85
 
+        resize = input("Resize 0.0-1.0:")
+        try:
+            resize = float(resize)
+        except ValueError:
+            resize = 1
+
     else:
         if len(sys.argv) != 4:
             print("Usage:")
@@ -74,7 +86,8 @@ def main():
         # t.refresh()
         t.update()
         # t.write(file.name)
-        ImgCompresser(str(file), str(outputF / file.name), quality=quality)
+        ImgCompresser(str(file), str(outputF / file.name),
+                      quality=quality, ratio=resize)
     t.close()
 
 
