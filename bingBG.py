@@ -27,6 +27,7 @@ def main():
                 imgurl = link.get("href")
 
     if imgurl:
+        imgurl = imgurl.replace("1920x1080", "UHD")
         print(imgurl)
     else:
         print("Image not found")
