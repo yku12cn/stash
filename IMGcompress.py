@@ -24,11 +24,11 @@ def ImgCompresser(filename, output, quality=0.75, ratio=1):
     ext = (PurePath(output).suffix).lower()
     if ("jpg" in ext) or ("jpeg" in ext):
         cv2.imwrite(output, im,
-                    [int(cv2.IMWRITE_JPEG_QUALITY), 100 * quality])
+                    [int(cv2.IMWRITE_JPEG_QUALITY), round(100 * quality)])
 
     elif "png" in ext:
         cv2.imwrite(output, im,
-                    [int(cv2.IMWRITE_PNG_COMPRESSION), 9 * (1 - quality)])
+                    [int(cv2.IMWRITE_PNG_COMPRESSION), round(9 * (1 - quality))])
 
     else:  # No compression for others
         shutil.copy(filename, output)
