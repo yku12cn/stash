@@ -38,7 +38,8 @@ def main():
 
     orifiles = list(Path("./").glob("*"))
     # remove this script from target list
-    orifiles.remove(Path(Path(sys.argv[0]).name))
+    if Path(Path(sys.argv[0]).name) in orifiles:
+        orifiles.remove(Path(Path(sys.argv[0]).name))
 
     if method == "-name":
         orifiles.sort(key=compString)

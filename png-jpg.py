@@ -24,7 +24,8 @@ def main():
 
     orifiles = sorted(list(Path("./").glob("*")))
     # remove this script from target list
-    orifiles.remove(Path(Path(sys.argv[0]).name))
+    if Path(Path(sys.argv[0]).name) in orifiles:
+        orifiles.remove(Path(Path(sys.argv[0]).name))
     for file in orifiles:
         if file.is_dir():  # jump over dir
             continue
