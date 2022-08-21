@@ -61,15 +61,16 @@ def main():
             resize = 1
 
     else:
-        if len(sys.argv) != 4:
+        if len(sys.argv) != 5:
             print("Usage:")
-            print("   python %s \"input folder\" \"output folder\" 0.85" %
+            print("   python %s \"input folder\" \"output folder\" quality resize" %
                   (sys.argv[0]))
             return
 
         inputF = Path(sys.argv[1])
         outputF = Path(sys.argv[2])
         quality = float(sys.argv[3])
+        resize = float(sys.argv[4])
 
     if not outputF.exists():
         outputF.mkdir(parents=True)

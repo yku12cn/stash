@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 
 
-def equalHist(filename, output, low=0.01, high=0.001, quality=0.85):
+def equalHist(filename, output, low=0.01, high=0.001, quality=0.85, gray=False):
     im = cv2.imread(filename, 1)  # load image as RGB
     if im is None:
         return
@@ -35,9 +35,12 @@ def equalHist(filename, output, low=0.01, high=0.001, quality=0.85):
             break
 
     # Skip unchanged images
-    if not totalcut:
-        shutil.copy(filename, output)
-        return
+    if gray:
+        im = gray_image
+    else:
+        if not totalcut:
+            shutil.copy(filename, output)
+            return
 
     im = im.astype("float64")
     im = im - lowcut
@@ -50,11 +53,11 @@ def equalHist(filename, output, low=0.01, high=0.001, quality=0.85):
     ext = (PurePath(output).suffix).lower()
     if ("jpg" in ext) or ("jpeg" in ext):
         cv2.imwrite(output, np.uint8(im),
-                    [int(cv2.IMWRITE_JPEG_QUALITY), 100 * quality])
+                    [int(cv2.IMWRITE_JPEG_QUALITY), round(100 * quality)])
 
     elif "png" in ext:
         cv2.imwrite(output, np.uint8(im),
-                    [int(cv2.IMWRITE_PNG_COMPRESSION), 9 * (1 - quality)])
+                    [int(cv2.IMWRITE_PNG_COMPRESSION), round(9 * (1 - quality))])
 
     else:  # No compression for others
         cv2.imwrite(output, np.uint8(im))
@@ -73,15 +76,27 @@ def main():
             outputF = Path("./output/")
         else:
             outputF = Path(outputF)
+
+        quality = input("Quality 0.0-1.0:")
+        try:
+            quality = float(quality)
+        except ValueError:
+            quality = 0.85
+
+        grayscale = input("Gray scale output? Y/N, default N:")
+        grayscale = grayscale.lower() == 'y'
+
     else:
-        if len(sys.argv) != 3:
+        if len(sys.argv) != 5:
             print("Usage:")
-            print("   python %s \"input folder\" \"output folder\"" %
+            print("   python %s \"input folder\" \"output folder\" 0.85 Y" %
                   (sys.argv[0]))
             return
 
         inputF = Path(sys.argv[1])
         outputF = Path(sys.argv[2])
+        quality = float(sys.argv[3])
+        grayscale = sys.argv[4].lower() == 'y'
 
     if not (inputF.exists() and inputF.is_dir()):
         print("error input parameter")
@@ -98,7 +113,7 @@ def main():
         # t.refresh()
         t.update()
         # t.write(file.name)
-        equalHist(str(file), str(outputF / file.name))
+        equalHist(str(file), str(outputF / file.name), quality=quality, gray=grayscale)
     t.close()
 
 

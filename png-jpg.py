@@ -6,6 +6,22 @@ _Ftable = [".jpg", ".jpeg", ".png", ".bmp", ".gif"]
 
 
 def main():
+    if len(sys.argv) == 1:
+        quality = input("Quality 0.0-1.0:")
+        try:
+            quality = float(quality)
+        except ValueError:
+            quality = 0.85
+
+    else:
+        if len(sys.argv) != 2:
+            print("Usage:")
+            print("   python %s 0.85" %
+                  (sys.argv[0]))
+            return
+
+        quality = float(sys.argv[1])
+
     orifiles = sorted(list(Path("./").glob("*")))
     # remove this script from target list
     orifiles.remove(Path(Path(sys.argv[0]).name))
@@ -39,7 +55,7 @@ def main():
                 im = im.convert("RGB")
             if im.mode == "LA":
                 im = im.convert("L")
-            im.save(file.stem + ".jpg", quality=95)
+            im.save(file.stem + ".jpg", quality=round(100 * quality))
             im.close()
             if file.suffix != ".jpg":
                 file.unlink()
