@@ -23,311 +23,311 @@ _pBar = ["-", "+", ">"]
 
 
 def _transFile(source, target, buffer, barlength=20):
-    """A helper function for file transferring"""
-    Totle = source.length
-    last = 0
-    print(_pBar[0] * barlength + "\b" * barlength, end="", flush=True)
-    actInd = 1
-    while True:
-        now = int((1 - source.length/Totle)*barlength)
-        if last != now:
-            print(_pBar[2] * (now - last), sep="", end="", flush=True)
-            last = now
-        pack = source.read(buffer)
-        if not pack:
-            break
-        target.write(pack)
+  """A helper function for file transferring"""
+  Totle = source.length
+  last = 0
+  print(_pBar[0] * barlength + "\b" * barlength, end="", flush=True)
+  actInd = 1
+  while True:
+    now = int((1 - source.length/Totle)*barlength)
+    if last != now:
+      print(_pBar[2] * (now - last), sep="", end="", flush=True)
+      last = now
+    pack = source.read(buffer)
+    if not pack:
+      break
+    target.write(pack)
 
-        # Print action indicator
-        print(_pBar[actInd], "\b", sep="", end="", flush=True)
-        actInd = 1 - actInd
+    # Print action indicator
+    print(_pBar[actInd], "\b", sep="", end="", flush=True)
+    actInd = 1 - actInd
 
-    print("")
+  print("")
 
 
 def _easyCookie(item):
-    """a easy way to cook a cookie form a dictionary
+  """a easy way to cook a cookie form a dictionary
 
-    Args:
-        item (dictionary): a dictionary at least has "name" and "value"
+  Args:
+    item (dictionary): a dictionary at least has "name" and "value"
 
-    Returns:
-        http.cookiejar.Cookie: a cookie
-    """
-    new_cookie = http.cookiejar.Cookie(
-        version=int(item["version"]) if "version" in item else 0,
-        name=item["name"],
-        value=item["value"],
-        port=int(item["port"]) if "port" in item else None,
-        port_specified="port" in item,
-        domain=item.get("domain"),
-        domain_specified="domain" in item,
-        domain_initial_dot=False,
-        path=item.get("path", "/"),
-        path_specified="path" in item,
-        secure=item.get("secure", False),
-        expires=None,  # Deal later
-        discard="expirationDate" not in item,
-        comment=None,
-        comment_url=None,
-        rest={},
-        rfc2109=False
-    )
+  Returns:
+    http.cookiejar.Cookie: a cookie
+  """
+  new_cookie = http.cookiejar.Cookie(
+    version=int(item["version"]) if "version" in item else 0,
+    name=item["name"],
+    value=item["value"],
+    port=int(item["port"]) if "port" in item else None,
+    port_specified="port" in item,
+    domain=item.get("domain"),
+    domain_specified="domain" in item,
+    domain_initial_dot=False,
+    path=item.get("path", "/"),
+    path_specified="path" in item,
+    secure=item.get("secure", False),
+    expires=None,  # Deal later
+    discard="expirationDate" not in item,
+    comment=None,
+    comment_url=None,
+    rest={},
+    rfc2109=False
+  )
 
-    if new_cookie.domain_specified:
-        new_cookie.domain_initial_dot = new_cookie.domain.startswith(".")
+  if new_cookie.domain_specified:
+    new_cookie.domain_initial_dot = new_cookie.domain.startswith(".")
 
-    if new_cookie.path == "":
-        new_cookie.path = "/"
-        new_cookie.path_specified = False
+  if new_cookie.path == "":
+    new_cookie.path = "/"
+    new_cookie.path_specified = False
 
-    if "httpOnly" in item:
-        new_cookie._rest["HttpOnly"] = item["httpOnly"]
-    else:
-        new_cookie._rest["HttpOnly"] = None
+  if "httpOnly" in item:
+    new_cookie._rest["HttpOnly"] = item["httpOnly"]
+  else:
+    new_cookie._rest["HttpOnly"] = None
 
-    if "sameSite" in item:
-        new_cookie._rest["SameSite"] = item["sameSite"]
-    else:
-        new_cookie._rest["SameSite"] = None
+  if "sameSite" in item:
+    new_cookie._rest["SameSite"] = item["sameSite"]
+  else:
+    new_cookie._rest["SameSite"] = None
 
-    if new_cookie._rest["SameSite"] == "unspecified":
-        new_cookie._rest["SameSite"] = None
+  if new_cookie._rest["SameSite"] == "unspecified":
+    new_cookie._rest["SameSite"] = None
 
-    expDate = item.get("expirationDate")
-    if expDate:
-        new_cookie.expires = float(expDate)
-        if new_cookie.expires <= time.time():
-            return None
+  expDate = item.get("expirationDate")
+  if expDate:
+    new_cookie.expires = float(expDate)
+    if new_cookie.expires <= time.time():
+      return None
 
-    return new_cookie
+  return new_cookie
 
 
 class SimpleWeb():
-    """A simplified web interface"""
+  """A simplified web interface"""
 
-    def __init__(self, log="", setattempt=2, userAgent=_defaultuserAgent):
-        # set the limit for HTTP retry attempts
-        self.atpset = setattempt
-        # Fake Header
-        self.fakeHeader = {}
-        self.fakeHeader["User-Agent"] = userAgent
-        # Create cookie jar
-        self.cjar = http.cookiejar.CookieJar()
-        self.cjopener = urlreq.build_opener(
-            urlreq.HTTPCookieProcessor(self.cjar))
-        # Bypassing SSL check
-        ssl._create_default_https_context = ssl._create_unverified_context
-        self.scheme = "http"
-        self.netloc = ""
-        self.lasturl = urlparse.urlparse("")
-        self.mylog = printLog(log)  # rename logging function
+  def __init__(self, log="", setattempt=2, userAgent=_defaultuserAgent):
+    # set the limit for HTTP retry attempts
+    self.atpset = setattempt
+    # Fake Header
+    self.fakeHeader = {}
+    self.fakeHeader["User-Agent"] = userAgent
+    # Create cookie jar
+    self.cjar = http.cookiejar.CookieJar()
+    self.cjopener = urlreq.build_opener(
+      urlreq.HTTPCookieProcessor(self.cjar))
+    # Bypassing SSL check
+    ssl._create_default_https_context = ssl._create_unverified_context
+    self.scheme = "http"
+    self.netloc = ""
+    self.lasturl = urlparse.urlparse("")
+    self.mylog = printLog(log)  # rename logging function
 
-    def logfile(self):
-        """get the logfile handler"""
-        return self.mylog.logfile()
+  def logfile(self):
+    """get the logfile handler"""
+    return self.mylog.logfile()
 
-    def _completeUrl(self, url):
-        """Fix incomplete url"""
-        parser = urlparse.urlparse(url)
-        if parser.scheme and parser.netloc:  # complete url
-            pass
-        elif parser.netloc:  # missing scheme only
-            if self.scheme:
-                parser = parser._replace(scheme=self.scheme)
-            else:
-                parser = parser._replace(scheme="http")
-        elif parser.scheme:  # have scheme, don't have netloc
-            self.mylog("invalid address:", url)
-            return None
-        elif (((parser.path[0] == '/') or (parser.path[0:2] == './')) and
-              (self.netloc != "")):  # relative url
-            parser = parser._replace(scheme=self.scheme, netloc=self.netloc)
-        else:  # probably missing http://
-            if self.scheme:
-                url = "%s://%s" % (self.scheme, url)
-            else:
-                url = "http://%s" % url
-            parser = urlparse.urlparse(url)
-        return parser.geturl()
+  def _completeUrl(self, url):
+    """Fix incomplete url"""
+    parser = urlparse.urlparse(url)
+    if parser.scheme and parser.netloc:  # complete url
+      pass
+    elif parser.netloc:  # missing scheme only
+      if self.scheme:
+        parser = parser._replace(scheme=self.scheme)
+      else:
+        parser = parser._replace(scheme="http")
+    elif parser.scheme:  # have scheme, don't have netloc
+      self.mylog("invalid address:", url)
+      return None
+    elif (((parser.path[0] == '/') or (parser.path[0:2] == './')) and
+          (self.netloc != "")):  # relative url
+      parser = parser._replace(scheme=self.scheme, netloc=self.netloc)
+    else:  # probably missing http://
+      if self.scheme:
+        url = "%s://%s" % (self.scheme, url)
+      else:
+        url = "http://%s" % url
+      parser = urlparse.urlparse(url)
+    return parser.geturl()
 
-    def Request(self, url, postdata=None, coder="utf-8",
-                attempt=-1, reqtime=GLOBAL_DEF):
-        """A simplified web request(post) with cookie
-        Post data in the form of {'name':'Eva','age':'20'}
-        Note: if the post data is not a valid non-string sequence
-        or mapping object, we will assume the data is already
-        well prepared.
-        """
-        # Quote url for special characters
-        url = urlparse.quote(url, safe=':/?#[]@!$&\'()*+,;=%')
-        # Understand url
-        url = self._completeUrl(url)
-        # reset retry flag
-        if attempt == -1:
-            attempt = self.atpset
-        # Try making the request
+  def Request(self, url, postdata=None, coder="utf-8",
+              attempt=-1, reqtime=GLOBAL_DEF):
+    """A simplified web request(post) with cookie
+    Post data in the form of {'name':'Eva','age':'20'}
+    Note: if the post data is not a valid non-string sequence
+    or mapping object, we will assume the data is already
+    well prepared.
+    """
+    # Quote url for special characters
+    url = urlparse.quote(url, safe=':/?#[]@!$&\'()*+,;=%')
+    # Understand url
+    url = self._completeUrl(url)
+    # reset retry flag
+    if attempt == -1:
+      attempt = self.atpset
+    # Try making the request
+    try:
+      if postdata:
         try:
-            if postdata:
-                try:
-                    # convert non-string sequence or mapping object
-                    data_parse = urlparse.urlencode(postdata)
-                except TypeError:
-                    # neither valid non-string sequence nor mapping object
-                    data_parse = postdata
+          # convert non-string sequence or mapping object
+          data_parse = urlparse.urlencode(postdata)
+        except TypeError:
+          # neither valid non-string sequence nor mapping object
+          data_parse = postdata
 
-                if not isinstance(data_parse, bytes):
-                    data_parse = data_parse.encode(coder)
+        if not isinstance(data_parse, bytes):
+          data_parse = data_parse.encode(coder)
 
-                req = urlreq.Request(url, data=data_parse,
-                                     headers=self.fakeHeader)
-            else:
-                req = urlreq.Request(url, headers=self.fakeHeader)
-            out = self.cjopener.open(req, timeout=reqtime)
-            self.lasturl = urlparse.urlparse(
-                out.geturl())  # update last successful req
-            return out
-        except urlerr.URLError as error:
-            # retry for all net error
-            self.mylog(error)
-            if attempt != 0:
-                self.mylog("retry request,", attempt, "attempts left")
-                time.sleep(0.5)
-                return self.Request(url, postdata=postdata, coder=coder,
-                                    attempt=attempt - 1, reqtime=reqtime)
+        req = urlreq.Request(url, data=data_parse,
+                             headers=self.fakeHeader)
+      else:
+        req = urlreq.Request(url, headers=self.fakeHeader)
+      out = self.cjopener.open(req, timeout=reqtime)
+      self.lasturl = urlparse.urlparse(
+        out.geturl())  # update last successful req
+      return out
+    except urlerr.URLError as error:
+      # retry for all net error
+      self.mylog(error)
+      if attempt != 0:
+        self.mylog("retry request,", attempt, "attempts left")
+        time.sleep(0.5)
+        return self.Request(url, postdata=postdata, coder=coder,
+                            attempt=attempt - 1, reqtime=reqtime)
+      return None
+
+  def updateNetloc(self, url=None):
+    """Force update domain"""
+    if url:
+      if not self.Request(url):
+        return False
+    self.scheme = self.lasturl.scheme
+    self.netloc = self.lasturl.netloc
+    return True
+
+  def reqCode(self, url, coder="utf-8", post=None, postcoder="utf-8",
+              attempt=-1, timeout=GLOBAL_DEF):
+    """Request for source code"""
+    # reset retry flag
+    if attempt == -1:
+      attempt = self.atpset
+    # Try fetching data
+    while attempt >= 0:
+      # Try to connect target
+      handle = self.Request(url, reqtime=timeout, attempt=0,
+                            postdata=post, coder=postcoder)
+      if handle:
+        try:
+          # Try fetching data
+          data = handle.read()
+        except OSError as error:
+          # Handle connection issues
+          self.mylog(error)
+          if attempt == 0:
             return None
+          self.mylog("re-loading data,", attempt, "attempts left")
+          time.sleep(0.5)
+          attempt = attempt - 1
+          continue
+        try:
+          # Try decode
+          return data.decode(coder)
+        except ValueError as error:
+          self.mylog("Codec error:", error)
+          return None
+      else:
+        # Handle connection failure
+        if attempt == 0:
+          return None
+        self.mylog("retry request,", attempt, "attempts left")
+        time.sleep(0.5)
+        attempt = attempt - 1
 
-    def updateNetloc(self, url=None):
-        """Force update domain"""
-        if url:
-            if not self.Request(url):
-                return False
-        self.scheme = self.lasturl.scheme
-        self.netloc = self.lasturl.netloc
-        return True
+  def saveFile(self, url, filename=None, buffer=64000,
+               attempt=-1, timeout=GLOBAL_DEF, overwrite=0):
+    """Simple download
+    overwrite = 0 : never overwrite existing file
+    overwrite = 1 : overwirte only when size mismatch
+    overwrite = 2 : overwirte anyway
+    """
+    if not filename:
+      filename = Path(url).name
+    filename = Path(filename)
+    if filename.exists() and overwrite == 0:  # check for conflicts
+      self.mylog(filename.absolute().as_posix(),
+                 "exists, abort. Set [overwrite > 0] to proceed")
+      return True
+    # reset retry flag
+    if attempt == -1:
+      attempt = self.atpset
+    # Try fetching data
+    while attempt >= 0:
+      # Try to connect target
+      handle = self.Request(url, reqtime=timeout, attempt=0)
+      if handle:
+        if filename.exists():  # Resolve file conflict
+          if overwrite == 2:
+            self.mylog("Force overwriting existing", filename.name)
+            filename.unlink()
+          elif overwrite == 1:
+            self.mylog(filename.name, "exists, checking size")
+            if filename.stat().st_size == handle.length:
+              self.mylog("Same size, abort")
+              return True
+            self.mylog("Size mismatch, proceed overwriting")
+            filename.unlink()
 
-    def reqCode(self, url, coder="utf-8", post=None, postcoder="utf-8",
-                attempt=-1, timeout=GLOBAL_DEF):
-        """Request for source code"""
-        # reset retry flag
-        if attempt == -1:
-            attempt = self.atpset
-        # Try fetching data
-        while attempt >= 0:
-            # Try to connect target
-            handle = self.Request(url, reqtime=timeout, attempt=0,
-                                  postdata=post, coder=postcoder)
-            if handle:
-                try:
-                    # Try fetching data
-                    data = handle.read()
-                except OSError as error:
-                    # Handle connection issues
-                    self.mylog(error)
-                    if attempt == 0:
-                        return None
-                    self.mylog("re-loading data,", attempt, "attempts left")
-                    time.sleep(0.5)
-                    attempt = attempt - 1
-                    continue
-                try:
-                    # Try decode
-                    return data.decode(coder)
-                except ValueError as error:
-                    self.mylog("Codec error:", error)
-                    return None
-            else:
-                # Handle connection failure
-                if attempt == 0:
-                    return None
-                self.mylog("retry request,", attempt, "attempts left")
-                time.sleep(0.5)
-                attempt = attempt - 1
+        downfile = open(filename, "wb")
+        try:
+          # Try to download data
+          self.mylog("Fetching \"%s\" - %s in total" %
+                     (filename.name, bFSize(handle.length)))
+          _transFile(handle, downfile, buffer)
+          downfile.close()
+          return True
+        except OSError as error:
+          # Handle transfer error
+          self.mylog(error)
+          downfile.close()
+          if filename.exists():
+            filename.unlink()
+          if attempt == 0:
+            return False
+          self.mylog("re-transfer,", attempt, "attempts left")
+          time.sleep(0.5)
+          attempt = attempt - 1
+      else:
+        # Handle connection failure
+        if attempt == 0:
+          return False
+        self.mylog("retry request,", attempt, "attempts left")
+        time.sleep(0.5)
+        attempt = attempt - 1
 
-    def saveFile(self, url, filename=None, buffer=64000,
-                 attempt=-1, timeout=GLOBAL_DEF, overwrite=0):
-        """Simple download
-        overwrite = 0 : never overwrite existing file
-        overwrite = 1 : overwirte only when size mismatch
-        overwrite = 2 : overwirte anyway
-        """
-        if not filename:
-            filename = Path(url).name
-        filename = Path(filename)
-        if filename.exists() and overwrite == 0:  # check for conflicts
-            self.mylog(filename.absolute().as_posix(),
-                       "exists, abort. Set [overwrite > 0] to proceed")
-            return True
-        # reset retry flag
-        if attempt == -1:
-            attempt = self.atpset
-        # Try fetching data
-        while attempt >= 0:
-            # Try to connect target
-            handle = self.Request(url, reqtime=timeout, attempt=0)
-            if handle:
-                if filename.exists():  # Resolve file conflict
-                    if overwrite == 2:
-                        self.mylog("Force overwriting existing", filename.name)
-                        filename.unlink()
-                    elif overwrite == 1:
-                        self.mylog(filename.name, "exists, checking size")
-                        if filename.stat().st_size == handle.length:
-                            self.mylog("Same size, abort")
-                            return True
-                        self.mylog("Size mismatch, proceed overwriting")
-                        filename.unlink()
+  def addACookie(self, rawCookie):
+    """add a raw cookie to current cookie jar
+    if cookie is expired, nothing will be done
 
-                downfile = open(filename, "wb")
-                try:
-                    # Try to download data
-                    self.mylog("Fetching \"%s\" - %s in total" %
-                               (filename.name, bFSize(handle.length)))
-                    _transFile(handle, downfile, buffer)
-                    downfile.close()
-                    return True
-                except OSError as error:
-                    # Handle transfer error
-                    self.mylog(error)
-                    downfile.close()
-                    if filename.exists():
-                        filename.unlink()
-                    if attempt == 0:
-                        return False
-                    self.mylog("re-transfer,", attempt, "attempts left")
-                    time.sleep(0.5)
-                    attempt = attempt - 1
-            else:
-                # Handle connection failure
-                if attempt == 0:
-                    return False
-                self.mylog("retry request,", attempt, "attempts left")
-                time.sleep(0.5)
-                attempt = attempt - 1
+    Args:
+      rawCookie (dictionary): least has "name" and "value"
+    """
+    cooked = _easyCookie(rawCookie)
+    if cooked:
+      self.cjar.set_cookie(cooked)
 
-    def addACookie(self, rawCookie):
-        """add a raw cookie to current cookie jar
-        if cookie is expired, nothing will be done
+  def loadCookiesFJson(self, jfile, encoding="utf-8"):
+    """load cookies from a json file
 
-        Args:
-            rawCookie (dictionary): least has "name" and "value"
-        """
-        cooked = _easyCookie(rawCookie)
-        if cooked:
-            self.cjar.set_cookie(cooked)
+    Args:
+      jfile (str of Path): path to the Json file
+    """
+    with open(Path(jfile), "r", encoding=encoding) as f:
+      for item in json.load(f):
+        self.addACookie(item)
 
-    def loadCookiesFJson(self, jfile, encoding="utf-8"):
-        """load cookies from a json file
-
-        Args:
-            jfile (str of Path): path to the Json file
-        """
-        with open(Path(jfile), "r", encoding=encoding) as f:
-            for item in json.load(f):
-                self.addACookie(item)
-
-    def __call__(self):
-        """Print help"""
-        for func in dir(self):
-            if callable(getattr(self, func)) and func[0:2] != "__":
-                print(func, getattr(self, func).__doc__, sep=" : ")
+  def __call__(self):
+    """Print help"""
+    for func in dir(self):
+      if callable(getattr(self, func)) and func[0:2] != "__":
+        print(func, getattr(self, func).__doc__, sep=" : ")
